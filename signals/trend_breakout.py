@@ -4,6 +4,8 @@ from sqlalchemy import text
 from config.database import engine
 import pandas as pd
 
+# DAILY MORNING BEFORE MARKET OPEN
+
 RISK_PER_TRADE = 0.01  # 1%
 CAPITAL = 100000  # paper capital
 

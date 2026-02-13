@@ -57,7 +57,7 @@ def run_portfolio_backtest(start_date=None, end_date=None):
     capital = INITIAL_CAPITAL
     equity_curve = []
     open_positions = {}
-    trades = []
+    trades = []   # 🔵 Will store R-multiples only
 
     unique_dates = sorted(df.index.unique())
 
@@ -87,6 +87,7 @@ def run_portfolio_backtest(start_date=None, end_date=None):
             entry_price = open_positions[symbol]["entry_price"]
             qty = open_positions[symbol]["qty"]
             stop = open_positions[symbol]["stop"]
+            risk_amount = open_positions[symbol]["risk_amount"]
 
             exit_price = None
 
@@ -101,8 +102,12 @@ def run_portfolio_backtest(start_date=None, end_date=None):
             if exit_price is not None:
 
                 pnl = (exit_price - entry_price) * qty
+
+                # 🔵 Compute R-multiple correctly
+                R = pnl / risk_amount
+
                 capital += pnl
-                trades.append(pnl)
+                trades.append(R)
 
                 del open_positions[symbol]
 
@@ -125,20 +130,17 @@ def run_portfolio_backtest(start_date=None, end_date=None):
             entry_price = row["close"] * 1.002
             stop = row["stop"]
 
-            # Validate stop
             if pd.isna(stop):
                 continue
 
             risk_per_share = entry_price - stop
 
-            # Validate risk
             if risk_per_share <= 0 or pd.isna(risk_per_share):
                 continue
 
             risk_amount = capital * RISK_PER_TRADE
             qty = risk_amount / risk_per_share
 
-            # Validate qty
             if qty <= 0 or pd.isna(qty) or np.isinf(qty):
                 continue
 
@@ -147,10 +149,8 @@ def run_portfolio_backtest(start_date=None, end_date=None):
                 "qty": qty,
                 "stop": stop,
                 "risk_amount": risk_amount,
-                "entry_date" : current_date
+                "entry_date": current_date
             }
-
-            current_risk += risk_amount
 
         equity_curve.append(capital)
     return capital, trades, equity_curve
