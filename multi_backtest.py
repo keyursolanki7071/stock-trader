@@ -1,5 +1,5 @@
 from services.load_data import load_stock_data
-from strategies.swing_v1 import generate_signals
+from strategies.trend_breakout import generate_signals
 from sqlalchemy import text
 from config.database import engine
 import numpy as np

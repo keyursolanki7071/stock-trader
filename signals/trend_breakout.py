@@ -1,10 +1,10 @@
 from services.load_data import load_stock_data
-from strategies.swing_v1 import generate_signals
+from strategies.trend_breakout import generate_signals as trend_breakout_signals
 from sqlalchemy import text
 from config.database import engine
 import pandas as pd
 
-RISK_PER_TRADE = 0.0075  # 0.75%
+RISK_PER_TRADE = 0.01  # 1%
 CAPITAL = 100000  # paper capital
 
 def run_daily_scan():
@@ -29,7 +29,7 @@ def run_daily_scan():
         if len(df) < 300:
             continue
 
-        df = generate_signals(df, nifty_df)
+        df = trend_breakout_signals(df, nifty_df)
 
         latest = df.iloc[-1]
 
@@ -45,7 +45,7 @@ def run_daily_scan():
                 "symbol": symbol,
                 "entry_price": round(entry_price, 2),
                 "stop": round(stop, 2),
-                "qty": round(qty, 2)
+                "qty": int(qty)
             })
 
         # Exit Signal
@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
     entries, exits = run_daily_scan()
 
-    print("\n===== NEW ENTRY SIGNALS =====")
+    print("\n===== NEW ENTRY SIGNALS FROM TREND BREAKOUT STRATEGY =====")
     for e in entries:
         print(f"{e['symbol']} | Entry: {e['entry_price']} | Stop: {e['stop']} | Qty: {e['qty']}")
 
